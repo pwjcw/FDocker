@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <base href="FDocker">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/layui/2.8.13/css/layui.css" integrity="sha512-3asloyzZbUk+E8z3Ynl1IRuCqXFOcgnJDNo1y/p+DD62LpToI9P4reVJsEGvoOsAcwLl16AJC9Yu0AjyBbtYFw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+<button type="button" class="layui-btn" lay-on="pull" style="margin: 20px;">拉取镜像</button>
+<table class="layui-table" lay-filter='demo' lay-data="{height: 'full-200', cellMinWidth: 80, page: true, limit:30, url: 'images?method=getAllimage'}">
+    <thead>
+    <tr>
+        <th lay-data="{field: 'ImageTag', width: 200,sort:true}">镜像名称</th>
+        <th lay-data="{field: 'ImageId', width: 200}">镜像ID</th>
+        <th lay-data="{field: 'Created', width: 200, sort:true}">创建时间</th>
+        <th lay-data="{field: 'Size', width: 200,sort:true}">镜像大小</th>
+        <th lay-data="{fixed: 'right', width:280, align:'center', toolbar: '#barDemo'}"></th>
+    </tr>
+    </thead>
+</table>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
+    <!-- <a class="layui-btn layui-btn-xs" lay-event="modify">修改运行状态</a> -->
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<script src="static/js/axios.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.7.0/vue.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/layui/2.8.13/layui.js" integrity="sha512-JzLe4Jz+fofUYplbcOsTO7HaEM5AGWH+DbWcC1SJdLeOOBK6ClYpadut0uZYgdCffVZ/S8q/Yf+U9Id+oy1neQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<!-- 注意：如果你直接复制所有代码到本地，上述 JS 路径需要改成你本地的 -->
+<script>
+    layui.use('table', function(){
+        var table = layui.table;
+        var util = layui.util;
+        //监听拉取镜像按钮
+        util.on('lay-on', {
+            pull: function(){
+                layer.prompt({title: '请输入镜像名称'}, function(value, index, elem){
+                    if(value === '') return elem.focus();
+                    axios({
+                        url: "images?method=pullImage",
+                        method: "post",
+                        data: {
+                            "ImageName":util.escape(value)
+                        }
+                    }).then(res=>{
+                        console.log(res.data)
+                    })
+                    layer.msg('正在拉取 '+ util.escape(value)+' 请耐心等待.....');
+                    // 关闭 prompt
+                    layer.close(index);
+                });
+            }
+        });
+
+        //监听工具条
+        table.on('tool(demo)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'detail'){
+                layer.open({
+                    type: 1,
+                    area: ['420px', '240px'], // 宽高
+                    content: '<div style="padding: 11px;"><span style="text-align: center">镜像名称：'+data.ImageTag+'</span><br><span style="text-align: center">镜像id：'+data.ImageId+'</span></div>'
+                });
+            } else if(obj.event === 'del'){
+                layer.confirm('确定要删除该镜像吗？', {icon: 3}, function(){
+                    axios({
+                        url:"images?method=deleteImage",
+                        method:"post",
+                        "data":{
+                            "imageId":data.ImageId
+                        }
+                    }).then(res=>{
+                        if (res.data.msg==='1'){
+                            layer.msg('删除成功！', {icon: 1});
+                            obj.del();
+                            layer.close(index);
+                        }else {
+                            layer.msg('删除失败,请检查该镜像是否存在正在运行的容器！', {icon: 2});
+                        }
+                    })
+                }, );
+            }
+        });
+
+    });
+</script>
+
+</body>
+</html>

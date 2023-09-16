@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>创建容器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/layui/2.8.13/css/layui.css" integrity="sha512-3asloyzZbUk+E8z3Ynl1IRuCqXFOcgnJDNo1y/p+DD62LpToI9P4reVJsEGvoOsAcwLl16AJC9Yu0AjyBbtYFw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <base href="FDocker">
+</head>
+<body>
+
+<div class="layui-form" style="padding: 20px;" id="app">
+    <div class="layui-form-item " >
+        <label class="layui-form-label">选择镜像</label>
+        <div class="layui-input-block">
+            <select name="ImageTag" lay-filter="select" id="selectOptions" lay-verify="required" >
+                <option value=""></option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">容器名称</label>
+        <div class="layui-input-block">
+            <input type="text" name="containerName" required  lay-verify="required" placeholder="请输入容器名称" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div id="portFields">
+        <div class="layui-form-item">
+            <label class="layui-form-label">容器端口</label>
+            <div class="layui-input-inline">
+                <input type="text" name="containerPort[]" required  lay-verify="required" placeholder="请输入容器端口" autocomplete="off" class="layui-input">
+            </div>
+            <label class="layui-form-label">主机端口</label>
+            <div class="layui-input-inline">
+                <input type="text" name="hostPort[]" required  lay-verify="required" placeholder="请输入主机端口" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+                <button class="layui-btn layui-btn-primary add-port-field">添加</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="formSubmit">提交</button>
+        </div>
+    </div>
+</div>
+<script src="static/js/axios.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.7.0/vue.min.js"></script>
+<script src="https://cdn.staticfile.org/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/layui/2.8.13/layui.js" integrity="sha512-JzLe4Jz+fofUYplbcOsTO7HaEM5AGWH+DbWcC1SJdLeOOBK6ClYpadut0uZYgdCffVZ/S8q/Yf+U9Id+oy1neQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+    layui.use(['form', 'jquery'], function(){
+        var form = layui.form;
+        var $ = layui.jquery;
+        form.render();
+        // 动态添加端口映射输入框
+        $('.add-port-field').on('click', function() {
+            var html = '<div class="layui-form-item">' +
+                '<label class="layui-form-label">容器端口</label>' +
+                '<div class="layui-input-inline">' +
+                '<input type="text" name="containerPort[]" required  lay-verify="required" placeholder="请输入容器端口" autocomplete="off" class="layui-input">' +
+                '</div>' +
+                '<label class="layui-form-label">主机端口</label>' +
+                '<div class="layui-input-inline">' +
+                '<input type="text" name="hostPort[]" required  lay-verify="required" placeholder="请输入主机端口" autocomplete="off" class="layui-input">' +
+                '</div>' +
+                '<div class="layui-input-inline">' +
+                '<button class="layui-btn layui-btn-primary remove-port-field">删除</button>' +
+                '</div>' +
+                '</div>';
+            $('#portFields').append(html);
+        });
+
+        // 删除端口映射输入框
+        $('body').on('click', '.remove-port-field', function() {
+            $(this).parents('.layui-form-item').remove();
+        });
+
+        // 表单提交事件
+        // 表单提交事件
+        form.on('submit(formSubmit)', function(data){
+            var formData = JSON.stringify(data.field);
+            axios({
+                url:"docker?method=addcontainer",
+                method:"post",
+                "data":data.field
+            }).then(res=>{
+                if (res.data.msg==='1'){
+                    layer.msg('创建容器成功');
+                }else {
+                    layer.msg('创建容器失败!');
+                }
+            })
+            console.log(formData);
+            // 这里可以通过axios发送表单数据到后端进行处理
+
+            return false;
+        });
+        // 渲染下拉选择框
+        form.render('select');
+
+        $.ajax({
+            url: 'images?method=getAllimage',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                var options = '';
+                console.log(data.data)
+                for (var i = 0; i < data.data.length; i++) {
+                    options += '<option value="' + data.data[i].ImageTag + '">' + data.data[i].ImageTag + '</option>';
+                }
+
+                $('#selectOptions').append(options);
+                form.render('select');
+            },
+            error: function(xhr, status, error) {
+                console.error(error);
+            }
+        });
+    });
+
+</script>
+
+</body>
+</html>

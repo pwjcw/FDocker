@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Password Change</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/layui/2.8.13/css/layui.css" integrity="sha512-3asloyzZbUk+E8z3Ynl1IRuCqXFOcgnJDNo1y/p+DD62LpToI9P4reVJsEGvoOsAcwLl16AJC9Yu0AjyBbtYFw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <base href="FDocker">
+</head>
+<body>
+
+<div class="layui-container" id="app">
+    <div class="layui-row">
+        <div class="layui-col-md6 layui-col-md-offset3">
+            <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                <legend>重置密码</legend>
+            </fieldset>
+
+            <form class="layui-form" lay-filter="passwordChangeForm" @submit.prevent="send()">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">旧密码</label>
+                    <div class="layui-input-block">
+                        <input type="password" name="oldPassword" lay-verify="required" placeholder="输入旧密码" autocomplete="off"
+                               class="layui-input" v-model="oldPassword">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">新密码</label>
+                    <div class="layui-input-block">
+                        <input type="password" name="newPassword" lay-verify="required" placeholder="输入新密码" autocomplete="off"
+                               class="layui-input" v-model="newPassword">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">确认密码</label>
+                    <div class="layui-input-block">
+                        <input type="password" name="confirmPassword" lay-verify="required|confirmPassword" placeholder="确认新密码" autocomplete="off"
+                               class="layui-input" v-model="confirmPassword">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn" lay-submit lay-filter="passwordChange">提交</button>
+                    </div>
+                </div>
+            </form>
+        </div>l
+    </div>
+</div>
+<script src="static/js/axios.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/layui/2.8.13/layui.js" integrity="sha512-JzLe4Jz+fofUYplbcOsTO7HaEM5AGWH+DbWcC1SJdLeOOBK6ClYpadut0uZYgdCffVZ/S8q/Yf+U9Id+oy1neQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.staticfile.org/vue/2.7.0/vue.min.js"></script>
+<script>
+
+    var vue=new Vue({
+        el:"#app",
+        data:{
+            "oldPassword":"",
+            "newPassword":"",
+            "confirmPassword":""
+
+        },
+        methods:{
+            send(){
+                console.log(this.newPassword,this.oldPassword)
+                if(this.newPassword!=this.confirmPassword){
+                    console.log(this.newPassword,this.confirmPassword)
+                    layer.alert('新密码和确认密码不一致');
+                }else {
+                    axios({
+                        "method":"post",
+                        "url":"user?method=modifypasswd",
+                        "data":{
+                            "oldPassword":this.oldPassword,
+                            "newPassword":this.newPassword
+                        }
+                    }).then(res=>{
+                            if (res.data.msg==="true"){
+                                layer.msg('密码修改成功', {icon: 1});
+                            }else {
+                                layer.msg('密码修改失败', {icon: 2});
+
+                            }
+
+                    })
+                }
+
+            }
+        }
+    })
+</script>
+
+
+</body>
+</html>

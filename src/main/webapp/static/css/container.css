@@ -1,0 +1,19 @@
+#app{
+    display: flex;
+    justify-content:center;
+    align-items: center;
+}
+
+/* 表格区域 */
+table{
+    border-collapse: collapse; /* 折叠表格边框 */
+    border-spacing: 0; /* 去除间隔空白 */
+    border: #cccccc;
+    width:1200px;
+}
+th{
+    background-color: rgb(242,242,242);
+}
+td{
+    text-align: center;
+}

@@ -1,0 +1,12 @@
+<?ChangePasswdxml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pwjcw.mapper.UserMapper">
+    <select id="Login" resultType="com.pwjcw.entity.User">
+            select username,passwd from user where username=#{username}
+    </select>
+    <update id="ChangePasswd">
+        update user set passwd=#{newPasswd} where username='admin'
+    </update>
+</mapper>

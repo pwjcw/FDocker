@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FDocker-容器管理</title>
+    <base href="FDocker">
+    <link rel="stylesheet" href="static/css/container.css">
+</head>
+<body>
+<h1 align="center">容器管理界面</h1>
+<div id="app">
+
+    <div class="table_body">
+        <table border="1" class="table_body">
+            <thead>
+            <tr>
+                <th>容器名称</th>
+                <th>容器ID</th>
+                <th>镜像名称</th>
+                <th>运行状态</th>
+                <th>创建时间</th>
+                <th>更改运行状态</th>
+                <th>删除容器</th>
+            </tr>
+            </thead>
+            <tbody >
+            <tr v-for="c in containers">
+                <td>{{c.ContainName}}</td>
+                <td>{{c.ContainerId}}</td>
+                <td>{{c.Image}}</td>
+                <td>{{c.Status}}</td>
+                <td>{{c.Created}}</td>
+                <td><button @click="handleButtonClick(c)">{{c.Status.includes('Up')? '停止' : '启动'}}</button></td>
+                <td><button @click="deleteContainer(c.ContainerId)">删除容器</button></td>
+            </tr>
+
+            </tbody>
+        </table>
+    </div>
+</div>
+<script src="static/js/axios.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.7.0/vue.min.js"></script>
+<script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            containers: []
+        },
+        mounted: function () {
+            this.obtain();
+        },
+        methods: {
+            //获取所有的容器
+            obtain() {
+                axios({
+                    "method": "post",
+                    "url": "docker?method=getnumdocker",
+                }).then(
+                    res => {
+                        this.containers = []
+                        this.containers=res.data
+                        console.log(this.containers)
+                    }
+                )
+            },
+            //更改容器状态
+            handleButtonClick(container){
+                if (tmp.Status.includes('Up')) {
+                    this.stopContainer(tmp.ContainerId);
+                } else if (tmp.Status.includes('Exit')) {
+                    this.startContainer(tmp.ContainerId);
+                }
+            },
+            stopContainer(containerId) {
+                axios({
+                    method: "post",
+                    url: "docker?method=stopcontainer",
+                    data: {
+                        "containerId":containerId
+                    }
+                }).then(res=>{
+                    if (res.data.msg==="1"){
+                        alert("停止成功")
+                        location.reload();
+                    }else {
+                        alert("停止失败")
+                    }
+                    console.log(res.data)
+                })
+            },
+            //运行容器
+            startContainer(containerid) {
+                axios({
+                    method: "post",
+                    url: "docker?method=startcontainer",
+                    data: {
+                        "containerId":containerid
+                    }
+                }).then(res=>{
+                    if (res.data.msg==="1"){
+                        alert("启动成功")
+                        location.reload();
+                    }else {
+                        alert("启动失败")
+                    }
+                    console.log(res.data)
+                })
+            },
+            //删除容器
+            deleteContainer(ContainerId){
+                this.stopContainer(ContainerId)   //先停止再删除
+                axios({
+                    method:"post",
+                    url:"docker?method=deletecontainer",
+                    data:{
+                        "containerId":ContainerId
+                    }
+                }).then(res=>{
+                    if (res.data.msg==="1"){
+                        alert("删除成功")
+                        location.reload();
+                    }else {
+                        alert("删除失败")
+                    }
+                    console.log(res.data)
+                })
+            }
+        }
+    })
+</script>
+</body>
+</html>

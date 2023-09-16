@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <base href="FDocker">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/layui/2.8.13/css/layui.css" integrity="sha512-3asloyzZbUk+E8z3Ynl1IRuCqXFOcgnJDNo1y/p+DD62LpToI9P4reVJsEGvoOsAcwLl16AJC9Yu0AjyBbtYFw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+
+<table class="layui-table" lay-filter='demo' lay-data="{height: 'full-200', cellMinWidth: 80, page: true, limit:30, url: 'docker?method=getnumdocker'}">
+    <thead>
+    <tr>
+<!--        <th lay-data="{type:'checkbox'}">ID</th>-->
+        <th lay-data="{field:'ContainerId', width:100}">容器ID</th>
+        <th lay-data="{field:'ContainName', width:100}">容器名称</th>
+        <th lay-data="{field:'Image', width:180, sort: true}">镜像名称</th>
+        <th lay-data="{field:'Status', minWidth:150, sort:true}">运行状态</th>
+        <th lay-data="{field:'Created'}">创建时间</th>
+        <th lay-data="{fixed: 'right', width:280, align:'center', toolbar: '#barDemo'}"></th>
+    </tr>
+    </thead>
+</table>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
+    <a class="layui-btn layui-btn-xs" lay-event="modify">修改运行状态</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<script src="static/js/axios.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.7.0/vue.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/layui/2.8.13/layui.js" integrity="sha512-JzLe4Jz+fofUYplbcOsTO7HaEM5AGWH+DbWcC1SJdLeOOBK6ClYpadut0uZYgdCffVZ/S8q/Yf+U9Id+oy1neQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<!-- 注意：如果你直接复制所有代码到本地，上述 JS 路径需要改成你本地的 -->
+<script>
+    layui.use('table', function(){
+        var table = layui.table;
+        //监听表格复选框选择
+        table.on('checkbox(demo)', function(obj){
+            console.log(obj)
+        });
+        //监听工具条
+        table.on('tool(demo)', function(obj){
+            var data = obj.data;
+
+            if(obj.event === 'detail'){
+                layer.open({
+                    type: 1,
+                    area: ['420px', '240px'], // 宽高
+                    content: '<div style="padding: 11px;"><span style="text-align: center">容器名称：'+data.ContainName+'</span><br>' + '<span style="text-align: center">' +
+                        '端口占用：'+data.port+
+                        '</span></div>'
+                });
+            } else if(obj.event === 'del'){
+                    layer.confirm('确定要删除该容器吗？', {icon: 3}, function(){
+                        axios({
+                            url:"docker?method=deletecontainer",
+                            method:"post",
+                            "data":{
+                                "containerId":data.ContainerId
+                            }
+                        }).then(res=>{
+                            if (res.data.msg==='1'){
+                                layer.msg('删除成功！', {icon: 1});
+                                obj.del();
+                                layer.close(index);
+                            }else {
+                                layer.msg('删除失败,请先停止运行中的容器！', {icon: 2});
+                            }
+                        })
+                    }, );
+            } else if(obj.event === 'modify'){
+                if (data.Status.includes("Up")){
+                    layer.confirm('是否要停止'+data.ContainName+'容器？',{icon:3},function (){
+                        axios({
+                            method:"post",
+                            url:"docker?method=stopcontainer",
+                            "data":{
+                                "containerId":data.ContainerId
+                            }
+                        }).then(res=>{
+                            if (res.data.msg==='1'){
+                                layer.msg('停止成功！', {icon: 1});
+                                location.reload()
+                            }else {
+                                layer.msg('停止失败！', {icon: 2});
+                            }
+                        })
+                    })
+                }else {
+                    layer.confirm('是否要启动'+data.ContainName+'容器？',{icon:3},function (){
+                        axios({
+                            method:"post",
+                            url:"docker?method=startcontainer",
+                            "data":{
+                                "containerId":data.ContainerId
+                            }
+                        }).then(res=>{
+                            if (res.data.msg==='1'){
+                                layer.msg('启动成功！', {icon: 1});
+                                location.reload()
+                            }else {
+                                layer.msg('启动失败！', {icon: 2});
+                            }
+                        })
+                    })
+                }
+
+            }
+        });
+
+    });
+</script>
+
+</body>
+</html>
